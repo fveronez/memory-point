@@ -9,14 +9,3 @@ export interface User {
   createdAt: Date;
   lastLogin: Date | null;
 }
-
-export interface UserStats {
-  total: number;
-  active: number;
-  inactive: number;
-  byRole: {
-    admin: number;
-    manager: number;
-    support: number;
-  };
-}

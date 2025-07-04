@@ -137,10 +137,15 @@ const AppProvider = ({ children }) => {
 
   // Funções de gerenciamento de tickets
   const addTicket = (ticketData) => {
+    // Gerar nova chave automática
+    const maxId = Math.max(...tickets.map(t => t.id), 0);
+    const newId = maxId + 1;
+    const newKey = `TK-${String(newId).padStart(3, '0')}`;
+    
     const newTicket = {
       ...ticketData,
-      id: Math.max(...tickets.map(t => t.id), 0) + 1,
-      chave: `TK-${String(Math.max(...tickets.map(t => t.id), 0) + 1).padStart(3, '0')}`,
+      id: newId,
+      chave: newKey, // Chave automática
       dataCriacao: new Date(),
       ultimaAtualizacao: new Date(),
       status: "novo",
@@ -151,7 +156,6 @@ const AppProvider = ({ children }) => {
     setTickets(prev => [...prev, newTicket]);
     return newTicket;
   };
-
   const updateTicket = useCallback((ticketId, updates) => {
     setTickets(prev => prev.map(ticket =>
       ticket.id === ticketId

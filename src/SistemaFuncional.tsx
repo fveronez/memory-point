@@ -27,7 +27,8 @@ import {
   MessageCircle,
   Filter,
   GripVertical,
-  Eye
+  Eye,
+  Activity
 } from 'lucide-react';
 
 // ============================================================================
@@ -45,6 +46,19 @@ const AppProvider = ({ children }) => {
   ]);
 
   const [currentUser, setCurrentUser] = useState(users[0]);
+
+  // Sistema de Logs
+  const [logs, setLogs] = useState([
+    {
+      id: 1,
+      usuario: users[0],
+      dataHora: new Date(),
+      tipoAtividade: 'sistema',
+      entidade: 'sistema',
+      entidadeId: 0,
+      detalhes: 'Sistema iniciado com sucesso'
+    }
+  ]);
 
   const [tickets, setTickets] = useState([
     {
@@ -135,6 +149,20 @@ const AppProvider = ({ children }) => {
     dev: ["em-desenvolvimento", "code-review", "teste", "concluido"]
   });
 
+  // Função para adicionar log
+  const adicionarLog = useCallback((tipoAtividade, entidade, entidadeId, detalhes) => {
+    const novoLog = {
+      id: Math.max(...logs.map(l => l.id), 0) + 1,
+      usuario: currentUser,
+      dataHora: new Date(),
+      tipoAtividade,
+      entidade,
+      entidadeId,
+      detalhes
+    };
+    setLogs(prev => [novoLog, ...prev]);
+  }, [logs, currentUser]);
+
   // Funções de gerenciamento de tickets
   const addTicket = (ticketData) => {
     const newTicket = {
@@ -149,6 +177,10 @@ const AppProvider = ({ children }) => {
       tags: ticketData.tags || []
     };
     setTickets(prev => [...prev, newTicket]);
+
+    // Log da criação
+    adicionarLog('criacao', 'ticket', newTicket.id, `Criou ticket ${newTicket.chave}: "${newTicket.titulo}"`);
+
     return newTicket;
   };
 

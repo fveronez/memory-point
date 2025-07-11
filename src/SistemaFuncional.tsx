@@ -42,6 +42,7 @@ import KanbanBoard from './components/kanban/KanbanBoard';
 import ConfigTab from "./components/config/ConfigTab";
 import Header from "./components/layout/Header";
 import Navigation from "./components/layout/Navigation";
+import NewTicketModal from "./components/modals/NewTicketModal";
 import LogsTab from './components/managers/LogsTab';
 
 // ============================================================================
@@ -117,11 +118,11 @@ const SistemaTickets: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNewTicket={() => setShowNewTicketModal(true)} />
+      <Header onNewTicket={() => setShowNewTicketModal(true      )} />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="flex-1 pb-6">
-        {renderActiveTab()}
+        {renderActiveTab(      )}
       </main>
       
       <footer className="bg-white border-t border-gray-200 px-6 py-4 sticky bottom-0">
@@ -139,34 +140,22 @@ const SistemaTickets: React.FC = () => {
 
       {/* Modais simplificados temporariamente */}
       {showNewTicketModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-medium mb-4">Novo Ticket</h3>
-            <p className="text-gray-600 mb-4">Modal será restaurado na próxima etapa</p>
-            <button
-              onClick={() => setShowNewTicketModal(false)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
+        <NewTicketModal onClose={() => setShowNewTicketModal(false      )} />
       )}
-
       {viewingTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96">
             <h3 className="text-lg font-medium mb-4">Visualizar Ticket</h3>
             <p className="text-gray-600 mb-4">Modal será restaurado na próxima etapa</p>
             <button
-              onClick={() => setViewingTicket(null)}
+              onClick={() => setViewingTicket(null      )}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Fechar
             </button>
           </div>
         </div>
-      )}
+            )}
 
       {editingTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -174,14 +163,14 @@ const SistemaTickets: React.FC = () => {
             <h3 className="text-lg font-medium mb-4">Editar Ticket</h3>
             <p className="text-gray-600 mb-4">Modal será restaurado na próxima etapa</p>
             <button
-              onClick={() => setEditingTicket(null)}
+              onClick={() => setEditingTicket(null      )}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Fechar
             </button>
           </div>
         </div>
-      )}
+            )}
     </div>
   );
 };

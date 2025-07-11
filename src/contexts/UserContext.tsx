@@ -1,132 +1,162 @@
-import React, { createContext, useContext, useState } from 'react';
-import { User, UserStats } from '../types/User';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+
+// Tipos
+interface User {
+  id: number;
+  nome: string;
+  email: string;
+  departamento: string;
+  role: 'admin' | 'manager' | 'support' | 'developer';
+  status: 'ativo' | 'inativo';
+  iniciais: string;
+  dataCriacao: Date;
+}
 
 interface UserContextType {
   users: User[];
-  currentUser: User | null;
-  hasPermission: (permission: string) => boolean;
-  switchUser: (userId: number) => boolean;
+  currentUser: User;
   addUser: (userData: Partial<User>) => User;
-  updateUser: (id: number, userData: Partial<User>) => void;
-  deleteUser: (id: number) => void;
-  toggleUserActive: (id: number) => void;
-  searchUsers: (query: string) => User[];
-  getUserStats: () => UserStats;
+  updateUser: (userId: number, updates: Partial<User>) => void;
+  deleteUser: (userId: number) => boolean;
+  toggleUserStatus: (userId: number) => void;
+  setCurrentUser: (user: User) => void;
+  hasPermission: (permission: string) => boolean;
+  validateUserForm: (formData: Partial<User>) => { errors: Record<string, string>; isValid: boolean };
 }
 
+// Contexto
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
-};
-
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Provider
+export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Estados migrados do AppProvider interno
   const [users, setUsers] = useState<User[]>([
-    {
-      id: 1, name: 'Admin Sistema', email: 'admin@sistema.com', username: 'admin', role: 'admin',
-      avatar: 'https://ui-avatars.com/api/?name=Admin+Sistema&background=3b82f6&color=fff', 
-      active: true, createdAt: new Date('2024-01-01'), lastLogin: new Date()
+    { 
+      id: 1, 
+      nome: "Admin Sistema", 
+      email: "admin@sistema.com", 
+      departamento: "TI", 
+      role: "admin", 
+      status: "ativo", 
+      iniciais: "AS", 
+      dataCriacao: new Date() 
     },
-    {
-      id: 2, name: 'João Silva', email: 'joao@empresa.com', username: 'manager', role: 'manager',
-      avatar: 'https://ui-avatars.com/api/?name=João+Silva&background=10b981&color=fff', 
-      active: true, createdAt: new Date('2024-02-15'), lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000)
+    { 
+      id: 2, 
+      nome: "João Silva", 
+      email: "joao@empresa.com", 
+      departamento: "Desenvolvimento", 
+      role: "manager", 
+      status: "ativo", 
+      iniciais: "JS", 
+      dataCriacao: new Date() 
     },
-    {
-      id: 3, name: 'Maria Santos', email: 'maria@empresa.com', username: 'support', role: 'support',
-      avatar: 'https://ui-avatars.com/api/?name=Maria+Santos&background=f59e0b&color=fff', 
-      active: true, createdAt: new Date('2024-03-10'), lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000)
+    { 
+      id: 3, 
+      nome: "Maria Santos", 
+      email: "maria@empresa.com", 
+      departamento: "Suporte", 
+      role: "support", 
+      status: "ativo", 
+      iniciais: "MS", 
+      dataCriacao: new Date() 
     }
   ]);
-  
-  const [currentUser, setCurrentUser] = useState<User | null>(users[0]);
-  
-  const permissions = {
-    admin: ['cliente', 'gestao', 'dev', 'config'],
-    manager: ['cliente', 'gestao', 'config'],
-    support: ['cliente', 'gestao']
-  };
 
-  const hasPermission = (permission: string): boolean => {
-    if (!currentUser) return false;
-    return permissions[currentUser.role]?.includes(permission) || false;
-  };
+  const [currentUser, setCurrentUser] = useState<User>(users[0]);
 
-  const switchUser = (userId: number): boolean => {
-    const user = users.find(u => u.id === userId);
-    if (user && user.active) {
-      setCurrentUser(user);
-      return true;
-    }
-    return false;
-  };
-
-  const addUser = (userData: Partial<User>): User => {
+  // Funções migradas do AppProvider interno
+  const addUser = useCallback((userData: Partial<User>): User => {
     const newUser: User = {
-      id: Date.now(),
-      name: userData.name || '',
-      email: userData.email || '',
-      username: userData.username || '',
-      role: userData.role || 'support',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name || '')}&background=6366f1&color=fff`,
-      active: true, 
-      createdAt: new Date(), 
-      lastLogin: null
-    };
+      ...userData,
+      id: Math.max(...users.map(u => u.id), 0) + 1,
+      dataCriacao: new Date(),
+      status: "ativo",
+      iniciais: userData.nome?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'XX'
+    } as User;
+    
     setUsers(prev => [...prev, newUser]);
     return newUser;
-  };
+  }, [users]);
 
-  const updateUser = (id: number, userData: Partial<User>): void => {
-    setUsers(prev => prev.map(user => user.id === id ? { ...user, ...userData } : user));
-    if (currentUser?.id === id) {
-      setCurrentUser(prev => prev ? { ...prev, ...userData } : null);
+  const updateUser = useCallback((userId: number, updates: Partial<User>) => {
+    setUsers(prev => prev.map(user =>
+      user.id === userId ? { ...user, ...updates } : user
+    ));
+  }, []);
+
+  const deleteUser = useCallback((userId: number): boolean => {
+    if (userId === currentUser.id) {
+      alert('Você não pode excluir seu próprio usuário!');
+      return false;
     }
-  };
+    setUsers(prev => prev.filter(user => user.id !== userId));
+    return true;
+  }, [currentUser.id]);
 
-  const deleteUser = (id: number): void => {
-    if (currentUser?.id === id) throw new Error('Não é possível deletar o próprio usuário');
-    setUsers(prev => prev.filter(user => user.id !== id));
-  };
+  const toggleUserStatus = useCallback((userId: number) => {
+    updateUser(userId, {
+      status: users.find(u => u.id === userId)?.status === 'ativo' ? 'inativo' : 'ativo'
+    });
+  }, [updateUser, users]);
 
-  const toggleUserActive = (id: number): void => {
-    const user = users.find(u => u.id === id);
-    if (user) {
-      updateUser(id, { active: !user.active });
+  // Sistema de permissões migrado
+  const hasPermission = useCallback((permission: string): boolean => {
+    const permissions = {
+      admin: ["cliente", "gestao", "dev", "config"],
+      manager: ["cliente", "gestao", "config"],
+      support: ["cliente", "gestao"],
+      developer: ["gestao", "dev"]
+    };
+    return permissions[currentUser?.role]?.includes(permission) || false;
+  }, [currentUser?.role]);
+
+  // Validações migradas
+  const validateUserForm = useCallback((formData: Partial<User>) => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.nome?.trim()) {
+      errors.nome = 'Nome é obrigatório';
+    } else if (formData.nome.length < 2) {
+      errors.nome = 'Nome deve ter pelo menos 2 caracteres';
     }
-  };
 
-  const searchUsers = (query: string): User[] => {
-    if (!query) return users;
-    const lowerQuery = query.toLowerCase();
-    return users.filter(user => 
-      user.name.toLowerCase().includes(lowerQuery) ||
-      user.email.toLowerCase().includes(lowerQuery) ||
-      user.username.toLowerCase().includes(lowerQuery)
-    );
-  };
-
-  const getUserStats = (): UserStats => ({
-    total: users.length,
-    active: users.filter(u => u.active).length,
-    inactive: users.filter(u => !u.active).length,
-    byRole: {
-      admin: users.filter(u => u.role === 'admin').length,
-      manager: users.filter(u => u.role === 'manager').length,
-      support: users.filter(u => u.role === 'support').length
+    if (!formData.email?.trim()) {
+      errors.email = 'Email é obrigatório';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email inválido';
     }
-  });
+
+    return {
+      errors,
+      isValid: Object.keys(errors).length === 0
+    };
+  }, []);
+
+  const value: UserContextType = {
+    users,
+    currentUser,
+    addUser,
+    updateUser,
+    deleteUser,
+    toggleUserStatus,
+    setCurrentUser,
+    hasPermission,
+    validateUserForm
+  };
 
   return (
-    <UserContext.Provider value={{
-      users, currentUser, hasPermission, switchUser, addUser, updateUser, deleteUser, 
-      toggleUserActive, searchUsers, getUserStats
-    }}>
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );
+};
+
+// Hook
+export const useUser = (): UserContextType => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser deve ser usado dentro de UserProvider');
+  }
+  return context;
 };

@@ -1,50 +1,19 @@
 import React, { useState } from 'react';
 import {
-  Search,
-  Bell,
-  User,
-  Plus,
-  Edit3,
-  X,
-  Calendar,
-  Settings,
   Users,
   Headphones,
-  Code,
-  Star,
-  Tag,
-  Workflow,
-  Globe,
-  Save,
-  ChevronDown,
-  FileText,
-  Trash2,
-  ArrowUpDown,
-  Lock,
-  Unlock,
-  Check,
-  AlertTriangle,
-  MessageCircle,
-  Filter,
-  GripVertical,
-  Eye,
-  Activity
-} from 'lucide-react';
+  Code} from 'lucide-react';
 
 // IMPORTAÇÕES DOS NOVOS CONTEXTOS E UTILITÁRIOS
-import { useTicket } from "./contexts/TicketContext";
-import { useUser } from "./contexts/UserContext";
-import { useCategory } from "./contexts/CategoryContext";
-import { formatDate, getCategoryInfo, getPriorityInfo, getColorClass, isTicketOverdue, formatStatusTitle } from "./utils/formatters";
+import NewTicketModal from "./components/modals/NewTicketModal";
+import TicketViewModal from "./components/modals/TicketViewModal";
+import TicketEditModal from "./components/modals/TicketEditModal";
 
 // IMPORTAR COMPONENTES EXTRAÍDOS
 import KanbanBoard from './components/kanban/KanbanBoard';
 import ConfigTab from "./components/config/ConfigTab";
 import Header from "./components/layout/Header";
 import Navigation from "./components/layout/Navigation";
-import NewTicketModal from "./components/modals/NewTicketModal";
-import TicketViewModal from "./components/modals/TicketViewModal";
-import LogsTab from './components/managers/LogsTab';
 
 // ============================================================================
 const SistemaTickets: React.FC = () => {
@@ -154,19 +123,11 @@ ticket=      {viewingTicket}
         />
 )}
       {editingTicket && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-medium mb-4">Editar Ticket</h3>
-            <p className="text-gray-600 mb-4">Modal será restaurado na próxima etapa</p>
-            <button
-              onClick={() => setEditingTicket(null      )}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-            )}
+        <TicketEditModal
+          ticket={editingTicket}
+          onClose={() => setEditingTicket(null)}
+        />
+      )}
     </div>
   );
 };

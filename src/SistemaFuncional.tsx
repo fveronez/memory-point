@@ -43,6 +43,7 @@ import ConfigTab from "./components/config/ConfigTab";
 import Header from "./components/layout/Header";
 import Navigation from "./components/layout/Navigation";
 import NewTicketModal from "./components/modals/NewTicketModal";
+import TicketViewModal from "./components/modals/TicketViewModal";
 import LogsTab from './components/managers/LogsTab';
 
 // ============================================================================
@@ -65,14 +66,14 @@ const SistemaTickets: React.FC = () => {
           <div className="p-6">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <Users className="text-white" size={24} />
+                <Users className="text-white" size={24}         />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Atendimento ao Cliente</h2>
                 <p className="text-sm text-gray-600">Gerenciamento de tickets do estágio inicial</p>
               </div>
             </div>
-            <KanbanBoard stage="cliente" {...commonProps} />
+            <KanbanBoard stage="cliente" {...commonProps}         />
           </div>
         );
       case 'gestao':
@@ -80,14 +81,14 @@ const SistemaTickets: React.FC = () => {
           <div className="p-6">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                <Headphones className="text-white" size={24} />
+                <Headphones className="text-white" size={24}         />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Gestão de Suporte</h2>
                 <p className="text-sm text-gray-600">Análise e planejamento de tickets</p>
               </div>
             </div>
-            <KanbanBoard stage="gestao" {...commonProps} />
+            <KanbanBoard stage="gestao" {...commonProps}         />
           </div>
         );
       case 'dev':
@@ -95,22 +96,22 @@ const SistemaTickets: React.FC = () => {
           <div className="p-6">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Code className="text-white" size={24} />
+                <Code className="text-white" size={24}         />
               </div>
               <div>
                 <h2 className="text-xl font-semibent text-gray-900">Desenvolvimento</h2>
                 <p className="text-sm text-gray-600">Implementação e testes de soluções</p>
               </div>
             </div>
-            <KanbanBoard stage="dev" {...commonProps} />
+            <KanbanBoard stage="dev" {...commonProps}         />
           </div>
         );
       case 'config':
-        return <ConfigTab />;
+        return <ConfigTab         />;
       default:
         return (
           <div className="p-6">
-            <KanbanBoard stage="cliente" {...commonProps} />
+            <KanbanBoard stage="cliente" {...commonProps}         />
           </div>
         );
     }
@@ -118,8 +119,8 @@ const SistemaTickets: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNewTicket={() => setShowNewTicketModal(true      )} />
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <Header onNewTicket={() => setShowNewTicketModal(true      )}         />
+      <Navigation activeTab={activeTab} onTabChange={setActiveTab}         />
       
       <main className="flex-1 pb-6">
         {renderActiveTab(      )}
@@ -140,23 +141,18 @@ const SistemaTickets: React.FC = () => {
 
       {/* Modais simplificados temporariamente */}
       {showNewTicketModal && (
-        <NewTicketModal onClose={() => setShowNewTicketModal(false      )} />
+        <NewTicketModal           onClose={() => setShowNewTicketModal(false      )}         />
       )}
       {viewingTicket && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-medium mb-4">Visualizar Ticket</h3>
-            <p className="text-gray-600 mb-4">Modal será restaurado na próxima etapa</p>
-            <button
-              onClick={() => setViewingTicket(null      )}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-            )}
-
+        <TicketViewModal
+ticket=      {viewingTicket}
+          onClose={() => setViewingTicket(null)}
+          onEdit={(ticket) => {
+            setViewingTicket(null);
+            setEditingTicket(ticket);
+}}
+        />
+)}
       {editingTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96">

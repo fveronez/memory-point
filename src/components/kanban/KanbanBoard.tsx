@@ -16,6 +16,7 @@ import { useTicket } from '../../contexts/TicketContext';
 import { useUser } from '../../contexts/UserContext';
 import { formatDate, getCategoryInfo, getPriorityInfo, getColorClass, isTicketOverdue, formatStatusTitle } from '../../utils/formatters';
 import { useToast, ConfirmDialog } from '../ui/Toast';
+import ErrorBoundary, { useErrorTest } from '../error/ErrorBoundary';
 
 interface KanbanBoardProps {
   stage: string;
@@ -27,9 +28,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ stage, onTicketEdit, onTicket
   const { tickets, workflow, updateTicket, deleteTicket } = useTicket();
   const { hasPermission } = useUser();
   const { success, error } = useToast();
+  const { throwError } = useErrorTest();
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState<any>(null);
+  const [shouldThrowError, setShouldThrowError] = useState(false);
+
+  // Simular erro de renderização para testar Error Boundary
+  if (shouldThrowError) {
+    throw new Error('Teste Error Boundary KanbanBoard - Erro de Renderização');
+  }
 
   // Filtrar tickets por estágio
   const stageTickets = tickets.filter(ticket => ticket.stage === stage);
@@ -79,8 +87,21 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ stage, onTicketEdit, onTicket
   };
 
   return (
-    <>
+    <ErrorBoundary isolate={true}>
       <div className="flex gap-6 overflow-x-auto pb-6">
+        {/* Botão de teste apenas em desenvolvimento */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="flex-shrink-0 w-32">
+            <button
+              onClick={() => setShouldThrowError(true)}
+              className="w-full px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm"
+              title="Testar Error Boundary"
+            >
+              🐛 Teste Kanban
+            </button>
+          </div>
+        )}
+
         {availableStatuses.map(status => {
           const statusTickets = ticketsByStatus[status] || [];
           
@@ -239,7 +260,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ stage, onTicketEdit, onTicket
           setTicketToDelete(null);
         }}
       />
-    </>
+    </ErrorBoundary>
   );
 };
 

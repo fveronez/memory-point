@@ -14,6 +14,7 @@ import {
 import { useTicket } from '../../contexts/TicketContext';
 import { useCategory } from '../../contexts/CategoryContext';
 import { useUser } from '../../contexts/UserContext';
+import { useToast } from '../ui/Toast';
 
 interface NewTicketModalProps {
   onClose: () => void;
@@ -32,6 +33,7 @@ const NewTicketModal: React.FC<NewTicketModalProps> = ({ onClose }) => {
   const { addTicket, validateTicketForm } = useTicket();
   const { categories } = useCategory();
   const { currentUser } = useUser();
+  const { success, error } = useToast();
 
   const [formData, setFormData] = useState<TicketFormData>({
     titulo: '',
@@ -76,6 +78,7 @@ const NewTicketModal: React.FC<NewTicketModalProps> = ({ onClose }) => {
     if (!validation.isValid) {
       setErrors(validation.errors);
       setIsSubmitting(false);
+      error('Dados inválidos', 'Verifique os campos obrigatórios');
       return;
     }
 
@@ -97,11 +100,15 @@ const NewTicketModal: React.FC<NewTicketModalProps> = ({ onClose }) => {
         responsavel: null
       };
 
-      addTicket(ticketData);
+      const newTicket = addTicket(ticketData);
+      
+      // Feedback de sucesso
+      success('Ticket criado!', `Ticket ${newTicket.chave} criado com sucesso`);
+      
       onClose();
     } catch (error) {
       console.error('Erro ao criar ticket:', error);
-      setErrors({ submit: 'Erro ao criar ticket. Tente novamente.' });
+      error('Erro ao criar ticket', 'Tente novamente em alguns instantes');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,18 +1,21 @@
 import React from 'react';
+import { ToastProvider } from './components/ui/Toast';
+import { CategoryProvider } from './contexts/CategoryContext';
 import { UserProvider } from './contexts/UserContext';
 import { TicketProvider } from './contexts/TicketContext';
-import { CategoryProvider } from './contexts/CategoryContext';
 import SistemaTickets from './SistemaFuncional';
 
 const App: React.FC = () => {
   return (
-        <CategoryProvider>
-          <UserProvider>
-            <TicketProvider>
-              <SistemaTickets />
-            </TicketProvider>
-          </UserProvider>
-      </CategoryProvider>
+    <ToastProvider>
+    <CategoryProvider>
+      <UserProvider>
+        <TicketProvider>
+          <SistemaTickets />
+        </TicketProvider>
+      </UserProvider>
+    </CategoryProvider>
+  </ToastProvider>
   );
 };
 

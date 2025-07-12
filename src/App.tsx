@@ -3,11 +3,13 @@ import { ToastProvider } from './components/ui/Toast';
 import { CategoryProvider } from './contexts/CategoryContext';
 import { UserProvider } from './contexts/UserContext';
 import { TicketProvider } from './contexts/TicketContext';
+import ErrorBoundary from './components/error/ErrorBoundary';
 import SistemaTickets from './SistemaFuncional';
 
 const App: React.FC = () => {
   return (
-    <ToastProvider>
+    <ErrorBoundary>
+  <ToastProvider>
     <CategoryProvider>
       <UserProvider>
         <TicketProvider>
@@ -16,6 +18,7 @@ const App: React.FC = () => {
       </UserProvider>
     </CategoryProvider>
   </ToastProvider>
+</ErrorBoundary>
   );
 };
 

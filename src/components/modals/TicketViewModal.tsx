@@ -22,6 +22,7 @@ import { useTicket } from '../../contexts/TicketContext';
 import { useUser } from '../../contexts/UserContext';
 import { formatDate, getCategoryInfo, getPriorityInfo, getColorClass, isTicketOverdue } from '../../utils/formatters';
 import { useToast, ConfirmDialog } from '../ui/Toast';
+import ErrorBoundary, { useErrorTest } from '../error/ErrorBoundary';
 
 interface TicketViewModalProps {
   ticket: any;
@@ -33,10 +34,17 @@ const TicketViewModal: React.FC<TicketViewModalProps> = ({ ticket, onClose, onEd
   const { deleteTicket, updateTicket } = useTicket();
   const { currentUser } = useUser();
   const { success, error, warning } = useToast();
+  const { throwError } = useErrorTest();
   
   const [newComment, setNewComment] = useState('');
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [shouldThrowError, setShouldThrowError] = useState(false);
+
+  // Simular erro de renderização para testar Error Boundary
+  if (shouldThrowError) {
+    throw new Error('Teste Error Boundary TicketViewModal - Erro de Renderização');
+  }
 
   const categoryInfo = getCategoryInfo(ticket.categoria);
   const priorityInfo = getPriorityInfo(ticket.prioridade);
@@ -102,7 +110,7 @@ const TicketViewModal: React.FC<TicketViewModalProps> = ({ ticket, onClose, onEd
   const StatusIcon = statusInfo.icon;
 
   return (
-    <>
+    <ErrorBoundary isolate={true}>
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         onClick={handleOverlayClick}
@@ -128,6 +136,17 @@ const TicketViewModal: React.FC<TicketViewModalProps> = ({ ticket, onClose, onEd
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Botão de teste apenas em desenvolvimento */}
+              {process.env.NODE_ENV === 'development' && (
+                <button
+                  onClick={() => setShouldThrowError(true)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Testar Error Boundary"
+                >
+                  🐛
+                </button>
+              )}
+              
               <button
                 onClick={() => onEdit(ticket)}
                 className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
@@ -347,7 +366,7 @@ const TicketViewModal: React.FC<TicketViewModalProps> = ({ ticket, onClose, onEd
         }}
         onCancel={() => setShowDeleteConfirm(false)}
       />
-    </>
+    </ErrorBoundary>
   );
 };
 

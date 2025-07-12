@@ -1,20 +1,22 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import useLocalStorage from '../hooks/useLocalStorage';
+import { useToast } from '../components/ui/Toast';
 
-// Tipos
+// Interfaces
 interface Ticket {
-  id: number;
+  id: string;
   chave: string;
   titulo: string;
   descricao: string;
-  prioridade: 'baixa' | 'media' | 'alta';
-  categoria: 'bug' | 'feature' | 'suporte' | 'melhoria' | 'manutencao';
+  categoria: string;
+  prioridade: string;
   cliente: string;
-  status: string;
-  stage: 'cliente' | 'gestao' | 'dev';
   responsavel: string | null;
+  stage: string;
+  status: string;
+  tags: string[];
   dataCriacao: Date;
   ultimaAtualizacao: Date;
-  tags: string[];
   comentarios: Array<{
     id: number;
     autor: string;
@@ -23,233 +25,259 @@ interface Ticket {
   }>;
 }
 
-interface Log {
-  id: number;
-  usuario: any;
-  dataHora: Date;
-  tipoAtividade: string;
-  entidade: string;
-  entidadeId: number;
-  detalhes: string;
-}
-
 interface TicketContextType {
   tickets: Ticket[];
-  logs: Log[];
   workflow: Record<string, string[]>;
-  addTicket: (ticketData: Partial<Ticket>) => Ticket;
-  updateTicket: (ticketId: number, updates: Partial<Ticket>) => void;
-  deleteTicket: (ticketId: number) => void;
-  moveTicket: (ticketId: number, newStatus: string, newStage: string) => void;
-  adicionarLog: (tipoAtividade: string, entidade: string, entidadeId: number, detalhes: string) => void;
-  validateTicketForm: (formData: Partial<Ticket>) => { errors: Record<string, string>; isValid: boolean };
+  addTicket: (data: Partial<Ticket>) => Ticket;
+  updateTicket: (id: string, updates: Partial<Ticket>) => void;
+  deleteTicket: (id: string) => void;
   getStats: () => any;
+  validateTicketForm: (data: any) => { isValid: boolean; errors: Record<string, string> };
 }
+
+// Workflow padrão do sistema
+const defaultWorkflow = {
+  cliente: ['novo', 'aguardando-info', 'aprovado'],
+  gestao: ['em-analise', 'planejado', 'atribuido'],
+  dev: ['em-desenvolvimento', 'code-review', 'teste', 'concluido']
+};
+
+// Tickets iniciais (apenas se não existir no localStorage)
+const initialTickets: Ticket[] = [
+  {
+    id: '1',
+    chave: 'TICK-001',
+    titulo: 'Sistema de autenticação não funciona',
+    descricao: 'Usuários não conseguem fazer login no sistema. O erro aparece após inserir credenciais válidas.',
+    categoria: 'bug',
+    prioridade: 'alta',
+    cliente: 'Empresa Alpha Ltda',
+    responsavel: null,
+    stage: 'cliente',
+    status: 'novo',
+    tags: ['login', 'urgente'],
+    dataCriacao: new Date('2024-01-15T09:30:00'),
+    ultimaAtualizacao: new Date('2024-01-15T09:30:00'),
+    comentarios: []
+  },
+  {
+    id: '2',
+    chave: 'TICK-002',
+    titulo: 'Implementar dashboard de relatórios',
+    descricao: 'Criar dashboard com métricas de vendas e performance para o módulo administrativo.',
+    categoria: 'feature',
+    prioridade: 'media',
+    cliente: 'Beta Corp',
+    responsavel: 'João Silva',
+    stage: 'gestao',
+    status: 'planejado',
+    tags: ['dashboard', 'relatórios'],
+    dataCriacao: new Date('2024-01-14T14:20:00'),
+    ultimaAtualizacao: new Date('2024-01-16T11:45:00'),
+    comentarios: [
+      {
+        id: 1,
+        autor: 'Ana Santos',
+        conteudo: 'Revisei os requisitos. Parece estar tudo em ordem.',
+        data: new Date('2024-01-16T10:30:00')
+      }
+    ]
+  },
+  {
+    id: '3',
+    chave: 'TICK-003',
+    titulo: 'Otimizar performance da página inicial',
+    descricao: 'A página inicial está carregando muito lentamente. Precisa de otimização.',
+    categoria: 'improvement',
+    prioridade: 'media',
+    cliente: 'Gamma Solutions',
+    responsavel: 'Carlos Lima',
+    stage: 'dev',
+    status: 'em-desenvolvimento',
+    tags: ['performance', 'frontend'],
+    dataCriacao: new Date('2024-01-12T16:15:00'),
+    ultimaAtualizacao: new Date('2024-01-17T09:20:00'),
+    comentarios: [
+      {
+        id: 1,
+        autor: 'Carlos Lima',
+        conteudo: 'Identificei alguns gargalos no carregamento de imagens.',
+        data: new Date('2024-01-17T09:20:00')
+      }
+    ]
+  }
+];
 
 // Contexto
 const TicketContext = createContext<TicketContextType | undefined>(undefined);
 
 // Provider
 export const TicketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Estados migrados do AppProvider interno
-  const [tickets, setTickets] = useState<Ticket[]>([
-    {
-      id: 1,
-      chave: "TK-001",
-      titulo: "Bug crítico na autenticação",
-      descricao: "Usuários não conseguem fazer login no sistema. Erro aparece após inserir credenciais válidas.",
-      prioridade: "alta",
-      categoria: "bug",
-      cliente: "Empresa Alpha Ltda",
-      status: "novo",
-      stage: "cliente",
-      responsavel: null,
-      dataCriacao: new Date('2024-01-15'),
-      ultimaAtualizacao: new Date('2024-01-15'),
-      tags: ["crítico", "login", "urgente"],
-      comentarios: []
-    },
-    {
-      id: 2,
-      chave: "TK-002",
-      titulo: "Dashboard administrativo completo",
-      descricao: "Implementar dashboard completo com métricas, gráficos e relatórios para administradores do sistema.",
-      prioridade: "media",
-      categoria: "feature",
-      cliente: "Empresa Beta Corp",
-      status: "em-analise",
-      stage: "gestao",
-      responsavel: "João Silva",
-      dataCriacao: new Date('2024-01-16'),
-      ultimaAtualizacao: new Date('2024-01-16'),
-      tags: ["dashboard", "admin", "relatórios"],
-      comentarios: [
-        { id: 1, autor: "João Silva", conteudo: "Iniciando análise dos requisitos", data: new Date('2024-01-16') }
-      ]
-    },
-    {
-      id: 3,
-      chave: "TK-003",
-      titulo: "Otimização de performance do sistema",
-      descricao: "Melhorar velocidade de carregamento das páginas e otimizar consultas ao banco de dados.",
-      prioridade: "media",
-      categoria: "melhoria",
-      cliente: "Empresa Gamma Inc",
-      status: "em-desenvolvimento",
-      stage: "dev",
-      responsavel: "Maria Santos",
-      dataCriacao: new Date('2024-01-17'),
-      ultimaAtualizacao: new Date('2024-01-17'),
-      tags: ["performance", "otimização"],
-      comentarios: []
-    },
-    {
-      id: 4,
-      chave: "TK-004",
-      titulo: "Solicitação de suporte técnico",
-      descricao: "Cliente precisa de orientação para configurar integração com API externa.",
-      prioridade: "baixa",
-      categoria: "suporte",
-      cliente: "Empresa Delta SA",
-      status: "aguardando-info",
-      stage: "cliente",
-      responsavel: null,
-      dataCriacao: new Date('2024-01-18'),
-      ultimaAtualizacao: new Date('2024-01-18'),
-      tags: ["api", "integração"],
-      comentarios: []
-    }
-  ]);
-
-  const [logs, setLogs] = useState<Log[]>([
-    {
-      id: 1,
-      usuario: { nome: "Admin Sistema" },
-      dataHora: new Date(),
-      tipoAtividade: 'sistema',
-      entidade: 'sistema',
-      entidadeId: 0,
-      detalhes: 'Sistema iniciado com sucesso'
-    }
-  ]);
-
-  const [workflow] = useState({
-    cliente: ["novo", "aguardando-info", "aprovado"],
-    gestao: ["em-analise", "planejado", "atribuido"],
-    dev: ["em-desenvolvimento", "code-review", "teste", "concluido"]
+  // Usar localStorage para persistir tickets
+  const [tickets, setTickets] = useLocalStorage('sistema-tickets', initialTickets, {
+    // Serialização customizada para Dates
+    serialize: (tickets) => JSON.stringify(tickets, (key, value) => {
+      if (value instanceof Date) {
+        return { __type: 'Date', value: value.toISOString() };
+      }
+      return value;
+    }),
+    deserialize: (str) => JSON.parse(str, (key, value) => {
+      if (value && typeof value === 'object' && value.__type === 'Date') {
+        return new Date(value.value);
+      }
+      return value;
+    }),
+    syncAcrossTabs: true
   });
 
-  // Funções migradas do AppProvider interno
-  const adicionarLog = useCallback((tipoAtividade: string, entidade: string, entidadeId: number, detalhes: string) => {
-    const novoLog: Log = {
-      id: Math.max(...logs.map(l => l.id), 0) + 1,
-      usuario: { nome: "Usuário Atual" }, // Será integrado com UserContext depois
-      dataHora: new Date(),
-      tipoAtividade,
-      entidade,
-      entidadeId,
-      detalhes
-    };
-    setLogs(prev => [novoLog, ...prev]);
-  }, [logs]);
+  const { success } = useToast();
 
-  const addTicket = useCallback((ticketData: Partial<Ticket>): Ticket => {
-    const newTicket: Ticket = {
-      ...ticketData,
-      id: Math.max(...tickets.map(t => t.id), 0) + 1,
-      chave: `TK-${String(Math.max(...tickets.map(t => t.id), 0) + 1).padStart(3, '0')}`,
-      dataCriacao: new Date(),
-      ultimaAtualizacao: new Date(),
-      status: "novo",
-      stage: "cliente",
-      comentarios: [],
-      tags: ticketData.tags || []
-    } as Ticket;
+  // Função para gerar chave única do ticket
+  const generateTicketKey = (): string => {
+    const lastTicket = tickets
+      .map(t => parseInt(t.chave.replace('TICK-', '')))
+      .filter(n => !isNaN(n))
+      .sort((a, b) => b - a)[0] || 0;
     
+    return `TICK-${String(lastTicket + 1).padStart(3, '0')}`;
+  };
+
+  // Adicionar ticket
+  const addTicket = (data: Partial<Ticket>): Ticket => {
+    const now = new Date();
+    const newTicket: Ticket = {
+      id: Math.random().toString(36).substr(2, 9),
+      chave: generateTicketKey(),
+      titulo: data.titulo || '',
+      descricao: data.descricao || '',
+      categoria: data.categoria || 'bug',
+      prioridade: data.prioridade || 'media',
+      cliente: data.cliente || '',
+      responsavel: data.responsavel || null,
+      stage: 'cliente',
+      status: 'novo',
+      tags: data.tags || [],
+      dataCriacao: now,
+      ultimaAtualizacao: now,
+      comentarios: []
+    };
+
     setTickets(prev => [...prev, newTicket]);
-
-    // Log da criação
-    adicionarLog('criacao', 'ticket', newTicket.id, `Criou ticket ${newTicket.chave}: "${newTicket.titulo}"`);
-
     return newTicket;
-  }, [tickets, adicionarLog]);
+  };
 
-  const updateTicket = useCallback((ticketId: number, updates: Partial<Ticket>) => {
-    setTickets(prev => prev.map(ticket =>
-      ticket.id === ticketId
-        ? { ...ticket, ...updates, ultimaAtualizacao: new Date() }
+  // Atualizar ticket
+  const updateTicket = (id: string, updates: Partial<Ticket>): void => {
+    setTickets(prev => prev.map(ticket => 
+      ticket.id === id 
+        ? { 
+            ...ticket, 
+            ...updates, 
+            ultimaAtualizacao: new Date()
+          }
         : ticket
     ));
-  }, []);
+  };
 
-  const deleteTicket = useCallback((ticketId: number) => {
-    setTickets(prev => prev.filter(ticket => ticket.id !== ticketId));
-  }, []);
+  // Deletar ticket
+  const deleteTicket = (id: string): void => {
+    setTickets(prev => prev.filter(ticket => ticket.id !== id));
+  };
 
-  const moveTicket = useCallback((ticketId: number, newStatus: string, newStage: string) => {
-    updateTicket(ticketId, { status: newStatus, stage: newStage });
-  }, [updateTicket]);
+  // Obter estatísticas
+  const getStats = () => {
+    const totalTickets = tickets.length;
+    
+    const ticketsByStage = {
+      cliente: tickets.filter(t => t.stage === 'cliente').length,
+      gestao: tickets.filter(t => t.stage === 'gestao').length,
+      dev: tickets.filter(t => t.stage === 'dev').length
+    };
 
-  // Validações migradas
-  const validateTicketForm = useCallback((formData: Partial<Ticket>) => {
+    const ticketsByPriority = [
+      {
+        nome: 'Alta',
+        count: tickets.filter(t => t.prioridade === 'alta').length,
+        cor: 'bg-red-500'
+      },
+      {
+        nome: 'Média',
+        count: tickets.filter(t => t.prioridade === 'media').length,
+        cor: 'bg-yellow-500'
+      },
+      {
+        nome: 'Baixa',
+        count: tickets.filter(t => t.prioridade === 'baixa').length,
+        cor: 'bg-green-500'
+      }
+    ];
+
+    const ticketsByCategory = [
+      {
+        nome: 'Bug',
+        count: tickets.filter(t => t.categoria === 'bug').length,
+        icone: '🐛'
+      },
+      {
+        nome: 'Feature',
+        count: tickets.filter(t => t.categoria === 'feature').length,
+        icone: '✨'
+      },
+      {
+        nome: 'Improvement',
+        count: tickets.filter(t => t.categoria === 'improvement').length,
+        icone: '🚀'
+      },
+      {
+        nome: 'Task',
+        count: tickets.filter(t => t.categoria === 'task').length,
+        icone: '📋'
+      }
+    ];
+
+    return {
+      totalTickets,
+      ticketsByStage,
+      ticketsByPriority,
+      ticketsByCategory
+    };
+  };
+
+  // Validar formulário de ticket
+  const validateTicketForm = (data: any): { isValid: boolean; errors: Record<string, string> } => {
     const errors: Record<string, string> = {};
 
-    if (!formData.titulo?.trim()) {
+    if (!data.titulo?.trim()) {
       errors.titulo = 'Título é obrigatório';
-    } else if (formData.titulo.length < 5) {
+    } else if (data.titulo.length < 5) {
       errors.titulo = 'Título deve ter pelo menos 5 caracteres';
     }
 
-    if (!formData.descricao?.trim()) {
+    if (!data.descricao?.trim()) {
       errors.descricao = 'Descrição é obrigatória';
-    } else if (formData.descricao.length < 10) {
+    } else if (data.descricao.length < 10) {
       errors.descricao = 'Descrição deve ter pelo menos 10 caracteres';
     }
 
-    if (!formData.cliente?.trim()) {
+    if (!data.cliente?.trim()) {
       errors.cliente = 'Cliente é obrigatório';
     }
 
     return {
-      errors,
-      isValid: Object.keys(errors).length === 0
+      isValid: Object.keys(errors).length === 0,
+      errors
     };
-  }, []);
-
-  // Estatísticas migradas
-  const getStats = useCallback(() => {
-    return {
-      totalTickets: tickets.length,
-      ticketsByStage: {
-        cliente: tickets.filter(t => t.stage === 'cliente').length,
-        gestao: tickets.filter(t => t.stage === 'gestao').length,
-        dev: tickets.filter(t => t.stage === 'dev').length
-      },
-      ticketsByPriority: [
-        { nome: "Alta", count: tickets.filter(t => t.prioridade === 'alta').length, cor: "bg-red-500" },
-        { nome: "Média", count: tickets.filter(t => t.prioridade === 'media').length, cor: "bg-yellow-500" },
-        { nome: "Baixa", count: tickets.filter(t => t.prioridade === 'baixa').length, cor: "bg-green-500" }
-      ],
-      ticketsByCategory: [
-        { nome: "Bug", count: tickets.filter(t => t.categoria === 'bug').length, icone: "🐛" },
-        { nome: "Feature", count: tickets.filter(t => t.categoria === 'feature').length, icone: "✨" },
-        { nome: "Suporte", count: tickets.filter(t => t.categoria === 'suporte').length, icone: "🤝" },
-        { nome: "Melhoria", count: tickets.filter(t => t.categoria === 'melhoria').length, icone: "🔧" }
-      ]
-    };
-  }, [tickets]);
+  };
 
   const value: TicketContextType = {
     tickets,
-    logs,
-    workflow,
+    workflow: defaultWorkflow,
     addTicket,
     updateTicket,
     deleteTicket,
-    moveTicket,
-    adicionarLog,
-    validateTicketForm,
-    getStats
+    getStats,
+    validateTicketForm
   };
 
   return (
@@ -259,7 +287,7 @@ export const TicketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   );
 };
 
-// Hook
+// Hook para usar o contexto
 export const useTicket = (): TicketContextType => {
   const context = useContext(TicketContext);
   if (!context) {
@@ -267,3 +295,5 @@ export const useTicket = (): TicketContextType => {
   }
   return context;
 };
+
+export default TicketContext;

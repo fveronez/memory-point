@@ -97,19 +97,6 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // Provider
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Migração automática dos dados existentes
-  const migrateUsers = (existingUsers: any[]): User[] => {
-    return existingUsers.map(user => ({
-      ...user,
-      isSubUser: user.isSubUser ?? false,
-      subUsers: user.subUsers ?? [],
-      parentUserId: user.parentUserId ?? undefined,
-      // Garantir que dataCriacao seja uma data válida
-      dataCriacao: user.dataCriacao instanceof Date ? user.dataCriacao : new Date(user.dataCriacao || Date.now()),
-      ultimoLogin: user.ultimoLogin instanceof Date ? user.ultimoLogin : (user.ultimoLogin ? new Date(user.ultimoLogin) : undefined)
-    }));
-  };
-
   // Usar localStorage para persistir usuários
   const [users, setUsers] = useLocalStorage('sistema-usuarios', initialUsers, {
     serialize: (users) => JSON.stringify(users, (key, value) => {
@@ -118,16 +105,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       return value;
     }),
-    deserialize: (str) => {
-      const parsed = JSON.parse(str, (key, value) => {
-        if (value && typeof value === 'object' && value.__type === 'Date') {
-          return new Date(value.value);
-        }
-        return value;
-      });
-      // Aplicar migração nos dados carregados
-      return migrateUsers(Array.isArray(parsed) ? parsed : initialUsers);
-    },
+    deserialize: (str) => JSON.parse(str, (key, value) => {
+      if (value && typeof value === 'object' && value.__type === 'Date') {
+        return new Date(value.value);
+      }
+      return value;
+    }),
     syncAcrossTabs: true
   });
 

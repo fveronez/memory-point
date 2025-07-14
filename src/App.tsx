@@ -1,25 +1,27 @@
-import React from 'react';
-import { ToastProvider } from './components/ui/Toast';
 import { CategoryProvider } from './contexts/CategoryContext';
+import { PriorityProvider } from './contexts/PriorityContext';
 import { UserProvider } from './contexts/UserContext';
 import { TicketProvider } from './contexts/TicketContext';
+import { ToastProvider } from './components/ui/Toast';
 import ErrorBoundary from './components/error/ErrorBoundary';
 import SistemaTickets from './SistemaFuncional';
 
-const App: React.FC = () => {
+function App() {
   return (
     <ErrorBoundary>
-  <ToastProvider>
-    <CategoryProvider>
-      <UserProvider>
-        <TicketProvider>
-          <SistemaTickets />
-        </TicketProvider>
-      </UserProvider>
-    </CategoryProvider>
-  </ToastProvider>
-</ErrorBoundary>
+      <ToastProvider>
+        <CategoryProvider>
+          <PriorityProvider>
+            <UserProvider>
+              <TicketProvider>
+                <SistemaTickets />
+              </TicketProvider>
+            </UserProvider>
+          </PriorityProvider>
+        </CategoryProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
-};
+}
 
 export default App;

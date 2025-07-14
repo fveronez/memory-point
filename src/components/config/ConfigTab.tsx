@@ -18,6 +18,7 @@ import { useUser } from '../../contexts/UserContext';
 import { useCategory } from '../../contexts/CategoryContext';
 import LogsTab from '../managers/LogsTab';
 import CategoryManager from './CategoryManager';
+import PriorityManager from './PriorityManager';
 
 // ============================================================================
 // USER MANAGER COMPONENT
@@ -243,13 +244,7 @@ const ConfigTab: React.FC = () => {
       <div className="flex-1 p-8 overflow-y-auto">
         {activeSubTab === 'geral' && <GeneralConfigTab />}
         {activeSubTab === 'usuarios' && <UserManager />}
-        {activeSubTab === 'prioridades' && (
-          <div className="text-center py-12">
-            <Star size={48} className="mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Gerenciador de Prioridades</h3>
-            <p className="text-gray-600">Em desenvolvimento - Funcionalidade avançada</p>
-          </div>
-        )}
+        {activeSubTab === 'prioridades' && <PriorityManager />}
         {activeSubTab === 'categorias' && <CategoryManager />}
         {activeSubTab === 'workflow' && (
           <div className="text-center py-12">

@@ -8,8 +8,7 @@ import {
   Activity,
   FileText,
   TrendingUp,
-  Clock,
-  Shield
+  Clock
 } from 'lucide-react';
 
 // Importar contextos e componentes
@@ -20,7 +19,6 @@ import LogsTab from '../managers/LogsTab';
 import CategoryManager from './CategoryManager';
 import PriorityManager from './PriorityManager';
 import UserManager from './UserManager';
-import PermissionManager from './PermissionManager';
 
 // ============================================================================
 // GENERAL CONFIG TAB COMPONENT
@@ -137,13 +135,7 @@ const ConfigTab: React.FC = () => {
       id: 'usuarios',
       label: 'Usuários',
       icon: Users,
-      description: 'Gerenciar usuários e subusuários do sistema'
-    },
-    {
-      id: 'permissoes',
-      label: 'Permissões',
-      icon: Shield,
-      description: 'Gerenciar permissões e templates de acesso'
+      description: 'Gerenciar usuários do sistema'
     },
     {
       id: 'prioridades',
@@ -208,7 +200,6 @@ const ConfigTab: React.FC = () => {
       <div className="flex-1 p-8 overflow-y-auto">
         {activeSubTab === 'geral' && <GeneralConfigTab />}
         {activeSubTab === 'usuarios' && <UserManager />}
-        {activeSubTab === 'permissoes' && <PermissionManager />}
         {activeSubTab === 'prioridades' && <PriorityManager />}
         {activeSubTab === 'categorias' && <CategoryManager />}
         {activeSubTab === 'workflow' && (

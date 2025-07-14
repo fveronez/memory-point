@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { CategoryProvider } from './contexts/CategoryContext';
 import { PriorityProvider } from './contexts/PriorityContext';
 import { UserProvider } from './contexts/UserContext';
+import { PermissionProvider } from './contexts/PermissionContext';
 import { TicketProvider } from './contexts/TicketContext';
 import { ToastProvider } from './components/ui/Toast';
 import ErrorBoundary from './components/error/ErrorBoundary';
@@ -27,9 +28,11 @@ function App() {
         <CategoryProvider>
           <PriorityProvider>
             <UserProvider>
-              <TicketProvider>
-                <SistemaTickets />
-              </TicketProvider>
+              <PermissionProvider>
+                <TicketProvider>
+                  <SistemaTickets />
+                </TicketProvider>
+              </PermissionProvider>
             </UserProvider>
           </PriorityProvider>
         </CategoryProvider>

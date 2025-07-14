@@ -8,8 +8,7 @@ import {
   Activity,
   FileText,
   TrendingUp,
-  Clock,
-  AlertTriangle
+  Clock
 } from 'lucide-react';
 
 // Importar contextos e componentes
@@ -19,50 +18,7 @@ import { useCategory } from '../../contexts/CategoryContext';
 import LogsTab from '../managers/LogsTab';
 import CategoryManager from './CategoryManager';
 import PriorityManager from './PriorityManager';
-
-// ============================================================================
-// USER MANAGER COMPONENT
-// ============================================================================
-const UserManager = () => {
-  const { users } = useUser();
-  
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Gerenciador de Usuários</h3>
-        <p className="text-sm text-gray-600 mb-6">
-          Gerencie usuários, permissões e configurações de acesso.
-        </p>
-      </div>
-      
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h4 className="font-medium text-gray-900 mb-4">Usuários Ativos ({users.length})</h4>
-        <div className="space-y-3">
-          {users.map(user => (
-            <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm">
-                  {user.iniciais}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{user.nome}</p>
-                  <p className="text-sm text-gray-600">{user.email} • {user.role}</p>
-                </div>
-              </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                user.status === 'ativo' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {user.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+import UserManager from './UserManager';
 
 // ============================================================================
 // GENERAL CONFIG TAB COMPONENT

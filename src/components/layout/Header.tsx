@@ -4,7 +4,8 @@ import {
   User,
   Plus,
   Settings,
-  ChevronDown
+  ChevronDown,
+  FileSpreadsheet
 } from 'lucide-react';
 
 // Importar contextos
@@ -13,6 +14,10 @@ import { useTicket } from '../../contexts/TicketContext';
 
 // Importar sistema de busca
 import GlobalSearch from '../search/GlobalSearch';
+
+// Importar componente de importação Excel
+import ExcelUploader from '../excel/ExcelUploader';
+import { useExcelImport } from '../../hooks/useExcelImport';
 
 interface HeaderProps {
   onNewTicket: () => void;
@@ -23,100 +28,97 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onNewTicket, onTicketView, onTicketEdit }) => {
   const { currentUser } = useUser();
   const { tickets } = useTicket();
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { handleImport } = useExcelImport();
+  const [showExcelUploader, setShowExcelUploader] = useState(false);
 
-  const unreadNotifications = tickets.filter(t =>
-    t.prioridade === 'alta' && t.stage === 'cliente'
-  ).length;
-
-  const handleTicketSelect = (ticket: any) => {
-    // Por padrão, abrir para visualização
-    onTicketView?.(ticket);
+  const handleExcelImport = (data: any[]) => {
+    handleImport(data);
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
-      <div className="flex items-center justify-between">
-        {/* Logo e Título */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-sm">ST</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Sistema de Tickets</h1>
-              <p className="text-xs text-gray-500">v2.0.0 - Sistema com Busca Global</p>
+    <>
+      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
+        <div className="flex items-center justify-between">
+          {/* Logo e Título */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">MP</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Memory Point</h1>
+                <p className="text-xs text-gray-500">Sistema de Gestão de Tickets</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Sistema de Busca Global - Centro */}
-        <div className="flex-1 max-w-md mx-8">
-          <GlobalSearch
-            onTicketSelect={handleTicketSelect}
-            onTicketView={onTicketView}
-            onTicketEdit={onTicketEdit}
-          />
-        </div>
+          {/* Busca Global */}
+          <div className="flex-1 max-w-xl mx-8">
+            <GlobalSearch 
+              onTicketView={onTicketView}
+              onTicketEdit={onTicketEdit}
+            />
+          </div>
 
-        {/* Botões e User Menu - Direita */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onNewTicket}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            <Plus size={18} />
-            Novo Ticket
-          </button>
-
-          <button className="p-2 text-gray-400 hover:text-gray-600 relative transition-colors">
-            <Bell size={20} />
-            {unreadNotifications > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
-                {unreadNotifications}
-              </span>
-            )}
-          </button>
-
-          <div className="relative">
+          {/* Ações */}
+          <div className="flex items-center gap-3">
+            {/* Botão Novo Ticket */}
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+              onClick={onNewTicket}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs">
-                {currentUser?.iniciais}
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium">{currentUser?.nome}</p>
-                <p className="text-xs text-gray-500 capitalize">{currentUser?.role}</p>
-              </div>
-              <ChevronDown size={16} />
+              <Plus size={16} />
+              <span className="hidden sm:inline">Novo Ticket</span>
             </button>
 
-            {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{currentUser?.nome}</p>
-                  <p className="text-xs text-gray-500">{currentUser?.email}</p>
+            {/* Botão Importar Excel */}
+            <button
+              onClick={() => setShowExcelUploader(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              title="Importar tickets do Excel"
+            >
+              <FileSpreadsheet size={16} />
+              <span className="hidden sm:inline">Importar Excel</span>
+            </button>
+
+            {/* Notificações */}
+            <button className="relative p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100">
+              <Bell size={20} />
+              {tickets.filter(t => t.status === 'novo').length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {tickets.filter(t => t.status === 'novo').length}
+                </span>
+              )}
+            </button>
+
+            {/* Perfil do Usuário */}
+            <div className="relative">
+              <button className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <User size={16} className="text-white" />
                 </div>
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  <User className="inline mr-2" size={14} />
-                  Perfil
-                </button>
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  <Settings className="inline mr-2" size={14} />
-                  Configurações
-                </button>
-                <hr className="my-1" />
-                <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                  Sair
-                </button>
-              </div>
-            )}
+                <span className="hidden sm:inline font-medium">
+                  {currentUser?.nome || 'Usuário'}
+                </span>
+                <ChevronDown size={14} />
+              </button>
+            </div>
+
+            {/* Configurações */}
+            <button className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100">
+              <Settings size={20} />
+            </button>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Modal de Importação Excel */}
+      <ExcelUploader
+        isOpen={showExcelUploader}
+        onClose={() => setShowExcelUploader(false)}
+        onDataProcessed={handleExcelImport}
+      />
+    </>
   );
 };
 

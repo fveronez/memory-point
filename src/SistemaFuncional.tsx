@@ -10,7 +10,7 @@ import TicketViewModal from "./components/modals/TicketViewModal";
 import TicketEditModal from "./components/modals/TicketEditModal";
 
 // IMPORTAR COMPONENTES EXTRAÍDOS
-import KanbanBoard from './components/kanban/KanbanBoard';
+import KanbanBoard from './components/kanban/ImprovedKanbanBoard';
 import ConfigTab from "./components/config/ConfigTab";
 import Header from "./components/layout/Header";
 import Navigation from "./components/layout/Navigation";

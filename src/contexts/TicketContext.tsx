@@ -29,7 +29,7 @@ interface TicketContextType {
   tickets: Ticket[];
   workflow: Record<string, string[]>;
   addTicket: (data: Partial<Ticket>) => Ticket;
-  updateTicket: (id: string, updates: Partial<Ticket>) => void;
+addMultipleTickets: (tickets: Partial<Ticket>[]) => void;  updateTicket: (id: string, updates: Partial<Ticket>) => void;
   deleteTicket: (id: string) => void;
   getStats: () => any;
   validateTicketForm: (data: any) => { isValid: boolean; errors: Record<string, string> };
@@ -270,11 +270,34 @@ export const TicketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
   };
 
+
+// Adicionar múltiplos tickets (para importação Excel)
+const addMultipleTickets = (ticketsData: Partial<Ticket>[]): void => {
+const now = new Date();
+const newTickets: Ticket[] = ticketsData.map((data, index) => ({
+id: Math.random().toString(36).substr(2, 9),
+chave: data.chave || generateTicketKey(),
+titulo: data.titulo || "",
+descricao: data.descricao || "",
+categoria: data.categoria || "suporte",
+prioridade: data.prioridade || "media",
+cliente: data.cliente || "",
+responsavel: data.responsavel || null,
+stage: data.stage || "cliente",
+status: data.status || "novo",
+tags: data.tags || [],
+dataCriacao: data.dataCriacao || now,
+ultimaAtualizacao: now,
+comentarios: []
+}));
+
+setTickets(prev => [...prev, ...newTickets]);
+};
   const value: TicketContextType = {
     tickets,
     workflow: defaultWorkflow,
     addTicket,
-    updateTicket,
+addMultipleTickets,    updateTicket,
     deleteTicket,
     getStats,
     validateTicketForm
@@ -297,3 +320,26 @@ export const useTicket = (): TicketContextType => {
 };
 
 export default TicketContext;
+
+  // Adicionar múltiplos tickets (para importação Excel)
+  const addMultipleTickets = (ticketsData: Partial<Ticket>[]): void => {
+    const now = new Date();
+    const newTickets: Ticket[] = ticketsData.map((data, index) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      chave: data.chave || generateTicketKey(),
+      titulo: data.titulo || '',
+      descricao: data.descricao || '',
+      categoria: data.categoria || 'suporte',
+      prioridade: data.prioridade || 'media',
+      cliente: data.cliente || '',
+      responsavel: data.responsavel || null,
+      stage: data.stage || 'cliente',
+      status: data.status || 'novo',
+      tags: data.tags || [],
+      dataCriacao: data.dataCriacao || now,
+      ultimaAtualizacao: now,
+      comentarios: []
+    }));
+    
+    setTickets(prev => [...prev, ...newTickets]);
+  };

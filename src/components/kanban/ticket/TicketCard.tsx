@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { formatTimeElapsed } from '../../../utils/kanbanLogic';
 
-interface EnhancedTicketCardProps {
+interface TicketCardProps {
   ticket: any;
   onSelect: (ticket: any) => void;
   onEdit: (ticket: any) => void;
@@ -22,7 +22,7 @@ interface EnhancedTicketCardProps {
   compact?: boolean;
 }
 
-const EnhancedTicketCard: React.FC<EnhancedTicketCardProps> = ({
+const TicketCard: React.FC<TicketCardProps> = ({
   ticket,
   onSelect,
   onEdit,
@@ -200,4 +200,4 @@ const EnhancedTicketCard: React.FC<EnhancedTicketCardProps> = ({
   );
 };
 
-export default EnhancedTicketCard;
+export default TicketCard;

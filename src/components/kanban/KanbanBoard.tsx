@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTicket } from '../../contexts/TicketContext';
 import { useValidatedDragDrop } from '../../hooks/useValidatedDragDrop';
-import EnhancedTicketCard from './ticket/EnhancedTicketCard';
+import TicketCard from './ticket/TicketCard';
 
 interface ImprovedKanbanBoardProps {
   stage: 'cliente' | 'gestao' | 'dev';
@@ -113,7 +113,7 @@ const ImprovedKanbanBoard: React.FC<ImprovedKanbanBoardProps> = ({
                 onDragStart={(e) => handleDragStart(e, ticket)}
                 className="relative"
               >
-                <EnhancedTicketCard
+                <TicketCard
                   ticket={ticket}
                   onSelect={onTicketView}
                   onEdit={onTicketEdit}

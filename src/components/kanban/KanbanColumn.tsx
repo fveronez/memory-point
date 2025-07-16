@@ -1,6 +1,6 @@
 import React from 'react';
 import { Zap, Plus } from 'lucide-react';
-import EnhancedTicketCard from './ticket/EnhancedTicketCard';
+import TicketCard from './ticket/TicketCard';
 
 interface KanbanColumnProps {
   title: string;
@@ -91,7 +91,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             onDragStart={(e) => onDragStart(e, ticket)}
             className="relative"
           >
-            <EnhancedTicketCard
+            <TicketCard
               ticket={ticket}
               onSelect={onTicketSelect}
               onEdit={onTicketEdit}
